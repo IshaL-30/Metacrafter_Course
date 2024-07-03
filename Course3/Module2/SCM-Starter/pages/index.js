@@ -2,27 +2,19 @@ import {useState, useEffect} from "react";
 import {ethers} from "ethers";
 import atm_abi from "../artifacts/contracts/Assessment.sol/Assessment.json";
 import { IoIosLogOut } from "react-icons/io";
-// import "./pages/global.css";
 
 export default function HomePage() {
   const [ethWallet, setEthWallet] = useState(undefined);
   const [account, setAccount] = useState(undefined);
   const [atm, setATM] = useState(undefined);
+  const [depositAmount, setDepositAmount] = useState(undefined);
+  const [withdrawAmount, setWithdrawAmount] = useState(undefined);
   const [balance, setBalance] = useState(undefined);
-  const [used_gas, setUsedGas] = useState(0);
-  const [total_gas, setTotalGas] = useState(0);
-  // const [close,setclose] = useState(false);
+  const [totalGas, setTotalGas] = useState(0);
+  const [transactionHistory, setTransactionHistory] = useState([]);
 
   const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
   const atmABI = atm_abi.abi;
-
-  const logout = async() => {
-    setAccount(undefined);
-    setBalance(0);
-    setATM(undefined);
-    setUsedGas(0);
-    setTotalGas(0);
-  };
 
   const getWallet = async() => {
     if (window.ethereum) {
@@ -30,21 +22,22 @@ export default function HomePage() {
     }
 
     if (ethWallet) {
-      const account = await ethWallet.request({method: "eth_accounts"});
+      const account = await ethWallet.request({method: "eth_accounts" });
       handleAccount(account);
     }
-  }
+  };
 
   const handleAccount = (account) => {
     if (account) {
       console.log ("Account connected: ", account);
-      setAccount(account);
+      setAccount(account[0]);
+      getATMContract();
     }
     else {
       console.log("No account found");
       setAccount(undefined);
     }
-  }
+  };
 
   const connectAccount = async() => {
     if (!ethWallet) {
@@ -52,11 +45,11 @@ export default function HomePage() {
       return;
     }
   
-    const accounts = await ethWallet.request({ method: 'eth_requestAccounts' });
+    const accounts = await ethWallet.request({ method: "eth_requestAccounts" });
     handleAccount(accounts);
     
-    // once wallet is set we can get a reference to our deployed contract
-    getATMContract();
+    // // once wallet is set we can get a reference to our deployed contract
+    // getATMContract();
   };
 
   const getATMContract = () => {
@@ -65,38 +58,68 @@ export default function HomePage() {
     const atmContract = new ethers.Contract(contractAddress, atmABI, signer);
  
     setATM(atmContract);
-  }
+  };
 
   const getBalance = async() => {
     if (atm) {
-      setBalance((await atm.getBalance()).toNumber());
+      const balance = await atm.getBalance();
+      setBalance(ethers.utils.formatEther(balance));
     }
-  }
+  };
+
+  const getclearHistory = async() => {
+    if (atm) {
+      setTransactionHistory([]);
+    }
+  };
+  
+  const logout = async() => {
+    setAccount(undefined);
+    setATM(undefined);
+    setDepositAmount(0);
+    setWithdrawAmount(0);
+    setBalance(undefined);
+    setTotalGas(0);
+    setTransactionHistory([]);
+  };
 
   const deposit = async () => {
     if (atm) {
-      let tx = await atm.deposit(1);
+      const provider = new ethers.providers.Web3Provider(ethWallet);
+      let tx = await atm.deposit(depositAmount, { gasLimit: 200000 });
       let receipt = await tx.wait();
       let used_gas = receipt.gasUsed.toNumber();
-      setUsedGas(used_gas);
       setTotalGas(total_gas => total_gas + used_gas);
-      console.log("Gas used in deposit:", used_gas);
       getBalance();
+      const block = await provider.getBlock(receipt.blockNumber);
+      const timestamp = new Date(block.timestamp * 1000).toLocaleString();
+      setTransactionHistory(prevHistory => [
+        ...prevHistory,
+        { transType: "Deposit", amount: depositAmount, usedGas: used_gas, timestamp }
+      ]);
     }
   }; 
 
   const withdraw = async () => {
     if (atm) {
-      let tx = await atm.withdraw(1);
+      const provider = new ethers.providers.Web3Provider(ethWallet);
+      let tx = await atm.withdraw(withdrawAmount, { gasLimit: 200000 });
       let receipt = await tx.wait();
       let used_gas = receipt.gasUsed.toNumber(); 
-      setUsedGas(used_gas);
-      setTotalGas(total_gas => total_gas + used_gas); 
-      console.log("Gas used in withdrawal:", used_gas);
+      setTotalGas(total_gas => total_gas + used_gas);
       getBalance();
+      const block = await provider.getBlock(receipt.blockNumber);
+      const timestamp = new Date(block.timestamp * 1000).toLocaleString();
+      setTransactionHistory(prevHistory => [
+        ...prevHistory,
+        { transType: "Withdraw", amount: withdrawAmount, usedGas: used_gas, timestamp }
+      ]);
     }
   };
   
+  useEffect(() => {
+    getWallet();
+  }, []);
 
   const initUser = () => {
     // Check to see if user has Metamask
@@ -118,23 +141,58 @@ export default function HomePage() {
         <div style={styles.para}>
           <p>Your Account: {account}</p>
           <p>Your Balance: {balance} ETH</p>
-          {used_gas && <p>Gas Used: {used_gas}</p>}
+          {/* {<p>Gas Used: {usedGas}</p>} */}
           <div style={styles.totalgas}>
-          <p>Total gas Used: {total_gas}</p>
+            <p>Total gas Used: {totalGas}</p>
+          </div>
         </div>
+        <div style={styles.his}>
+          <p style={styles.trans}>Transaction History:</p>
+          <div style={styles.table_data}>
+            <table style={styles.table}>
+              <thead style={styles.thead}>
+              <tr>
+                <th>Transaction Type</th>
+                <th>Amount</th>
+                <th>Gas Used</th>
+                <th>Timestamp</th>
+              </tr>
+              </thead>
+              <tbody style={styles.tbody}>
+                {transactionHistory.map((tx, index) => (
+                  <tr key={index}>
+                    <td>{tx.transType}</td>
+                    <td>{tx.amount} ETH</td>
+                    <td>{tx.usedGas}</td>
+                    <td>{tx.timestamp}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            </div>
         </div>
         <div style={styles.items}>
-          <button onClick={deposit} style={styles.btn}>Deposit 1 ETH</button>
-          <button onClick={withdraw} style={styles.btn}>Withdraw 1 ETH</button>
-          <button onClick={logout} style={styles.btn}>
-            Logout <span style={styles.icon}><IoIosLogOut /></span>
-          </button>
+              <div style={styles.btn_text}><input
+                type="number"
+                value={depositAmount}
+                placeholder="0"
+                onChange={(e) => setDepositAmount(Number(e.target.value))}
+                style={styles.input}
+              />{" "}<button onClick={deposit} style={styles.bt}>Deposit</button></div>
+              <div style={styles.btn_text}><input
+                type="number"
+                value={withdrawAmount}
+                placeholder="0"
+                onChange={(e) => setWithdrawAmount(Number(e.target.value))}
+                style={styles.input}
+              /><button onClick={withdraw} style={styles.bt}>Withdraw</button>
+              </div>
+              <button onClick={getclearHistory} style={styles.btn}>Clear History</button>
+              <button onClick={logout} style={styles.btn}>Logout <span style={styles.icon}><IoIosLogOut /></span></button>
         </div>
       </div>
     );
   };
-
-  useEffect(() => {getWallet();}, []);
 
   const styles = {
     container: {
@@ -143,11 +201,11 @@ export default function HomePage() {
       textAlign: "center",
       alignItems: "center",
       justifyContent: "center",
-      padding: "20px",
+      padding: "1%",
       margin: "auto",
       borderRadius: "10px",
       width: "65%",
-      height: "80vh",
+      height: "85%",
       position: "absolute",
       top: "50%",
       left: "50%",
@@ -158,24 +216,56 @@ export default function HomePage() {
       fontSize: "28px",
       textDecoration: "double",
     },
+    table_data: {
+      textAlign: "center",
+      alignItems: "center",
+      justifyContent: "center",
+      display: "flex",
+      marginRight: "6%",
+    },
+    table: {
+      width: "95%",
+      alignItems: "Left",
+      border: "1px solid black",
+    },
+    tbody: {
+      fontSize: "16px",
+      fontWeight: "16px",
+      color : "rgb(151 0 121)",
+    },
+    thead: {
+      color: "rgb(0 32 131)",
+      fontWeight: "bold",
+      fontSize: "20px",
+    },
     init: {
       border: "2px solid black",
       borderRadius: "10px",
-      margin: "7% 15%",
-      height: "45vh",
+      margin: "2% 10%",
+      height: "75%",
       backgroundColor: "rgb(247, 215, 4)",
       color: "#19005f",
       fontWeight: "bold",
       fontSize: "20px",
       padding: "2%",
     },
-    para: {
-      fontSize: "20px",
+    account_functions: {
+      height: "100%",
+      textAlign: "left",
     },
+    para: {
+      fontSize: "18px",
+      marginLeft: "4%",
+    },
+    
     items: {
-      margin: "10px",
+      position: "float",
+      margin: "0% 4%",
       padding: "3px",
       fontSize: "30px",
+      textAlign: "center",
+      justifyContent: "center",
+
     },
     btn: {
       width: "150px",
@@ -186,18 +276,69 @@ export default function HomePage() {
       cursor: "pointer",
       alignItems: "center",
       textAlign: "center",
+      justifyContent:"center",
       border: "none",
-      margin: "10px",
-    }
+      margin: "0 1%",
+      fontSize: "16px",
+    },
+    btn_text: {
+      width: "150px",
+      height: "40px",
+      backgroundColor: "#120097",
+      color: "rgb(252, 255, 239)",
+      borderRadius: "5px",
+      alignItems: "center",
+      textAlign: "center",
+      justifyContent:"center",
+      border: "none",
+      margin: "1% 1%",
+      fontSize: "16px",
+      display: "inline-flex",
+    },
+    his: {
+      fontSize: "20px",
+      height: "50%",
+      marginLeft: "4%",
+      padding: "0",
+    },
+    bt: {
+      width: "40px",
+      height: "15px",
+      backgroundColor: "#120097",
+      color: "rgb(252, 255, 239)",
+      borderRadius: "5px",
+      cursor: "pointer",
+      border: "none",
+      fontSize: "16px",
+      margin: "0 9px",
+      display: "inline-flex",
+      alignItems: "center",
+      textAlign: "center",
+      justifyContent:"center",
+    },
+    input: {
+      width: "30px",
+      height: "18px",
+      marginRight: "10px",
+      borderRadius: "5px",
+      border: "1px solid #120097",
+      // padding: "5px",
+      display: "inline-flex",
+      alignItems: "center",
+      textAlign: "center",
+      justifyContent:"center",
+    },
   };
 
   return (
-    <main style={styles.container}>
+    <main>
+      <div style={styles.container}>
       <header>
         <h1>Welcome to the Metacrafters ATM!</h1>
       </header>
       <div style={styles.init}>
         {initUser()}
+      </div>
       </div>
     </main>
   );

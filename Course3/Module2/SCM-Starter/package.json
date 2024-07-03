@@ -2,16 +2,14 @@
   "name": "hardhat-project",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^2.0.0",
-    "hardhat": "^2.12.4"
+    "hardhat": "^2.22.6"
   },
   "dependencies": {
     "@metamask/providers": "^10.2.1",
-    "boxicons": "^2.1.4",
     "next": "^13.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-icons": "^5.2.1",
-    "react-router-dom": "^6.24.0"
+    "react-icons": "^5.2.1"
   },
   "scripts": {
     "dev": "next dev",

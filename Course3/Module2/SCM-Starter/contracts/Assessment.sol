@@ -1,21 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-//import "hardhat/console.sol";
-
 contract Assessment {
     address payable public owner;
     uint256 public balance;
 
-    event Deposit(uint256 amount);
-    event Withdraw(uint256 amount);
+    event Deposit(uint256 amount, uint256 usedGas);
+    event Withdraw(uint256 amount, uint256 usedGas);
 
     constructor(uint initBalance) payable {
         owner = payable(msg.sender);
         balance = initBalance;
     }
 
-    function getBalance() public view returns(uint256){
+    function getBalance() public view returns(uint256) {
         return balance;
     }
 
@@ -31,8 +29,11 @@ contract Assessment {
         // assert transaction completed successfully
         assert(balance == _previousBalance + _amount);
 
+        // calculate gas used
+        uint256 _usedGas = tx.gasprice * gasleft();
+
         // emit the event
-        emit Deposit(_amount);
+        emit Deposit(_amount, _usedGas);
     }
 
     // custom error
@@ -54,7 +55,10 @@ contract Assessment {
         // assert the balance is correct
         assert(balance == (_previousBalance - _withdrawAmount));
 
+        // calculate gas used
+        uint256 _usedGas = tx.gasprice * gasleft();
+
         // emit the event
-        emit Withdraw(_withdrawAmount);
+        emit Withdraw(_withdrawAmount, _usedGas);
     }
 }

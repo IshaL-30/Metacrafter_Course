@@ -27,6 +27,7 @@ To set up the project, you'll need:
 ```bash
 git clone https://github.com/IshaL-30/Metacrafter_Course.git
 cd Assignment2/create_a_token.sol
+```
 
 ### Executing program
 
@@ -41,7 +42,7 @@ To deploy and interact with the smart contract:
 - Interact with the contract using the provided functions (mint and burn).
 
 Example Commands
-
+```
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.18;
 
@@ -68,6 +69,7 @@ contract MyToken {
         balances[add] -= val;
     }
 }
+```
 
 ## Help
 

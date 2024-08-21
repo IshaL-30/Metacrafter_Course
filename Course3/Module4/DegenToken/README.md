@@ -4,7 +4,7 @@ Welcome to the DegenToken project! This repository contains the implementation o
 
 ## Project Overview
 
-**Degen Gaming** aims to enhance player engagement by integrating a custom token into their game. Players can earn and spend tokens for various in-game activities, creating a rewarding and interactive gaming experience.
+The DegenToken contract is an ERC20 token with additional functionalities tailored for an in-game economy. It includes features for purchasing tokens with AVAX, transferring tokens between players, redeeming tokens for in-game items like seeds and animals, and collecting rewards like eggs and milk.
 
 ## Features
 

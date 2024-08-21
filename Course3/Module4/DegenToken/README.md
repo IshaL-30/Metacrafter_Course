@@ -59,42 +59,53 @@ constructor() ERC20("Degen", "DGN") {
 
 1. **Clone the Repository:**
     ```bash
-    git clone https://github.com/your-repo/degen-token.git
+    git clone https://github.com/IshaL-30/Degen-Token-ETH-Intermediate-Module4.git
     ```
 
 2. **Install Dependencies:**
     ```bash
-    cd degen-token
+    cd Degen-Token-ETH-Intermediate-Module4
     npm install
     ```
 
 3. **Configure Environment:**
    - Create a `.env` file and add your private key and API key.
+   - For Example:
+     ```bash
+     PRIVATE_KEY=ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+     ETHERSCAN_API_KEY=2CHWYYKTMKRE4JT7W3VF8VSK111QA93W8P
+     FORK_FUJI=false
+     FORK_MAINNET=false
+     ```
+     
+4. **Go Through Guide**
+   ```bash
+   cd GUIDE.md
+   ```
 
-4. **Compile the Contract:**
+5. **Compile the Contract:**
     ```bash
     npx hardhat compile
     ```
 
-5. **Deploy the Contract:**
+6. **Deploy the Contract:**
     ```bash
     npx hardhat run scripts/deploy.js --network fuji
     ```
 
-6. **Verify the Contract:**
+7. **Verify the Contract:**
    - Verify the contract on Snowtrace.
+  
+## Help
 
+If you encounter any issues or need assistance with the project, please refer to the following resources:
+
+- **[Hardhat Documentation](https://hardhat.org/getting-started/)**: For setting up and working with Hardhat.
+- **[OpenZeppelin Documentation](https://docs.openzeppelin.com/contracts/)**: For understanding and using OpenZeppelin contracts.
+- **[Avalanche Documentation](https://docs.avax.network/)**: For information about deploying on the Avalanche network.
+- **[Solidity Documentation](https://docs.soliditylang.org/)**: For Solidity language specifics and syntax.
+- **[Stack Overflow](https://stackoverflow.com/)**: For general development and blockchain questions.
+  
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Contact
-
-For questions or support, please contact [your-email@example.com](mailto:your-email@example.com).
-
----
-
-Feel free to modify this `README.md` to fit any additional details or specific instructions for your project.
-```
-
-Adjust the sections as necessary, such as adding your repository URL, adjusting the email address, or including additional setup steps specific to your deployment.
